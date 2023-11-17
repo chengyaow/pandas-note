@@ -48,3 +48,41 @@ pd.wide_to_long(df,
                 j='Examination',
                 sep='_',
                 suffix='.+')
+df = pd.DataFrame(np.ones((4,2)),
+                  index = pd.Index([('A', 'cat', 'big'),
+                                    ('A', 'dog', 'small'),
+                                    ('B', 'cat', 'big'),
+                                    ('B', 'dog', 'small')]),
+                  columns=['col_1', 'col_2'])
+df.unstack() # unstack: 将行索引变成列索引，默认转化最内层的行索引，big, small
+df.unstack(2) # 将第二层的行索引变成列索引，big, small
+df.unstack([0,2]) # 将第一层和第三层的行索引变成列索引，A, B, big, small
+# 使用unstack需保证行索引的层级关系是唯一的，如果不唯一，需要先进行变形操作
+
+df = pd.DataFrame(np.ones((4,2)),
+                  index = pd.Index([('A', 'cat', 'big'),
+                                    ('A', 'dog', 'small'),
+                                    ('B', 'cat', 'big'),
+                                    ('B', 'dog', 'small')]),
+                  columns=['index_1', 'index_2']).T
+df.stack() # stack: 将列索引变成行索引，默认转化最内层的列索引，big, small
+df.stack([1, 2]) # 将第二层和第三层的列索引变成行索引，cat, dog, big, small
+df = pd.read_csv('../data/learn_pandas.csv')
+# crosstab可以看作是pivot_table的特殊情况，用于计算分组频率
+pd.crosstab(index = df.School, columns = df.Transfer) 
+# values: 用于聚合的列,此处无意义， aggfunc: 聚合函数
+pd.crosstab(index = df.School, columns = df.Transfer, values = [0]*df.shape[0], aggfunc = 'count')
+# 可以用pivot_table实现crosstab的功能
+df.pivot_table(index = 'School',
+               columns = 'Transfer',
+               values = 'Name',
+               aggfunc = 'count')
+'''从上面可以看出这两个函数的区别在于，`crosstab`的对应位置传入的是具体的序列，
+而`pivot_table`传入的是被调用表对应的名字，若传入序列对应的值则会报错。
+除了默认状态下的`count`统计，所有的聚合字符串和返回标量的自定义函数都是可用的'''
+'''`explode`参数能够对某一列的元素进行纵向的展开，被展开的单元格必须存储`list, tuple, Series, np.ndarray`中的一种类型。'''
+df_ex = pd.DataFrame({'A': [[1, 2], 'my_str', {1, 2}, pd.Series([3, 4])],'B': 1})
+df_ex.explode('A') # 对A列进行展开
+'''`get_dummies`是用于特征构建的重要函数之一，其作用是把类别特征转为指示变量。
+例如,对年级一列转为指示变量,属于某一个年级的对应列标记为1,否则为0:'''
+pd.get_dummies(df.Grade).head()
