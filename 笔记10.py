@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 ''' 
 概念            单元素类型      数组类型            pandas数据类型
 Date times      Timestamp      DatetimeIndex       datetime64[ns]
@@ -135,5 +136,86 @@ s.dt.seconds.head() # 取出秒数，对天数取余，从0到86399 .second从0�
 s.dt.total_seconds().head() # 取出总秒数
 pd.to_timedelta(df.Time_Record).dt.round('min').head() # 取整操作
 
+# Timedelta的运算
+td1 = pd.Timedelta(days=1)
+td2 = pd.Timedelta(days=3)
+ts = pd.Timestamp('20200101')
+td1 * 2 # Timedelta('2 days 00:00:00')
+td2 - td1 # Timedelta('2 days 00:00:00')
+ts + td1 # Timestamp('2020-01-02 00:00:00')
+ts - td1 # Timestamp('2019-12-31 00:00:00')
+# 可移植到时间差的序列上
+td1 = pd.timedelta_range(start='1 days', periods=5)
+td2 = pd.timedelta_range(start='12 hours', freq='2H', periods=5)
+ts = pd.date_range('20200101', '20200105')
+td1 * 5 #TimedeltaIndex(['5 days', '10 days', '15 days', '20 days', '25 days'], dtype='timedelta64[ns]', freq=None)
+td1 * pd.Series(list(range(5))) # 逐个相乘，0,2,6,12,20，返回TimedeltaIndex
+td1 - td2 # TimedeltaIndex(['0 days 12:00:00', '1 days 10:00:00', '2 days 08:00:00', '3 days 06:00:00', '4 days 04:00:00'], dtype='timedelta64[ns]', freq=None)
+td1 + pd.Timestamp('20200101') # DatetimeIndex(['2020-01-02', '2020-01-03', '2020-01-04', '2020-01-05', '2020-01-06'], dtype='datetime64[ns]', freq=None)
+td1 + ts # 逐个相加
 
+# 日期偏置
+pd.Timestamp('20200831') + pd.offsets.WeekOfMonth(week=0,weekday=0) # Timestamp('2020-09-07 00:00:00')，下周一
+pd.Timestamp('20200907') + pd.offsets.BDay(30) # Timestamp('2020-10-19 00:00:00')，30个工作日后
+pd.Timestamp('20200831') - pd.offsets.WeekOfMonth(week=0,weekday=0) # Timestamp('2020-08-03 00:00:00')，上周一
+pd.Timestamp('20200907') - pd.offsets.BDay(30) # Timestamp('2020-07-27 00:00:00')，30个工作日前
+pd.Timestamp('20200907') + pd.offsets.MonthEnd() # Timestamp('2020-09-30 00:00:00')，月末
+# CDay是自定义的偏置，n表示增加一天，weekmask表示保留周几，holidays表示过滤掉的日期
+my_filter = pd.offsets.CDay(n=1,weekmask='Wed Fri',holidays=['20200109'])
+dr = pd.date_range('20200108', '20200111')
+dr.to_series().dt.dayofweek
+'''
+2020-01-08    2
+2020-01-09    3
+2020-01-10    4
+2020-01-11    5
+Freq: D, dtype: int32
+'''
+[i + my_filter for i in dr]
+'''
+[Timestamp('2020-01-10 00:00:00'),
+ Timestamp('2020-01-10 00:00:00'),
+ Timestamp('2020-01-15 00:00:00'),
+ Timestamp('2020-01-15 00:00:00')]
+'''
+# 由于当前版本下的一些bug，不要使用Day以下的Offset,使用对应的Timedelta替代
+# 偏置字符串，date_range两边的日期都包含在内
+pd.date_range('20200101','20200331', freq='MS') # 月初
+pd.date_range('20200101','20200331', freq=pd.offsets.MonthBegin())
+#DatetimeIndex(['2020-01-01', '2020-02-01', '2020-03-01'], dtype='datetime64[ns]', freq='MS')
+pd.date_range('20200101','20200331', freq='M') # 月末
+pd.date_range('20200101','20200331', freq=pd.offsets.MonthEnd())
+pd.date_range('20200101','20200110', freq='B') # 工作日
+pd.date_range('20200101','20200110', freq=pd.offsets.BDay())
+pd.date_range('20200101','20200110', freq='W-MON') # 每周周一
+pd.date_range('20200101','20200201', freq=pd.offsets.CDay(weekmask='Mon'))
+pd.date_range('20200101','20200110', freq='WOM-1MON') # 每月第一个周一
+pd.date_range('20200101','20200201', freq=pd.offsets.WeekOfMonth(week=0,weekday=0))
 
+# 时序中的滑窗与分组
+idx = pd.date_range('20200101', '20201231', freq='B') # 生成日期序列，freq='B'表示工作日
+np.random.seed(2020)
+data = np.random.randint(-1,2,len(idx)).cumsum() # 随机游动构造模拟序列，[-1,0,1]的随机数，再累加
+s = pd.Series(data,index=idx)
+s.head()
+r = s.rolling('30D') # 以30天为窗口，r.mean()将计算每个30天窗口的平均值，r.std()将计算每个30天窗口的标准差。
+plt.plot(s) # 画出原始序列
+plt.title('BOLL LINES')
+plt.plot(r.mean()) # 画出均线
+plt.plot(r.mean()+r.std()*2) # 画出上轨
+plt.plot(r.mean()-r.std()*2) # 画出下轨
+s.shift(freq='50D').head() # 将序列整体向后移动50天
+my_series = pd.Series(s.index) # 生成一个日期序列
+my_series.diff(1).head() # 计算相邻两个日期的data差值
+s.resample('10D').mean().head() # 以10天为间隔，计算均值,1,11,21,31,10
+s.resample('10D').apply(lambda x:x.max()-x.min()).head() # 极差
+
+idx = pd.date_range('20200101 8:26:35', '20200101 9:31:58', freq='77s')
+data = np.random.randint(-1,2,len(idx)).cumsum()
+s = pd.Series(data,index=idx) # 起始时间为8:26:35，间隔77秒，j结束为9:30:45
+s.resample('7min').mean().head() # 起始时间为8:24:00,从0点增加72发个7min得到，在resample中需注意
+s.resample('7min', origin='start').mean().head() # 起始时间为8:26:35
+
+s = pd.Series(np.random.randint(2,size=366), index=pd.date_range('2020-01-01', '2020-12-31'))
+s.resample('M').mean().head() # 索引为月末，数据为每月的均值
+s.resample('MS').mean().head() # 索引为月初，数据为每月的均值
