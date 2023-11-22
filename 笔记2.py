@@ -64,8 +64,8 @@ df_demo.quantile(0.75) #四分位数
 df_demo.count() #非缺失值元素个数
 df_demo.idxmax() #最大值的索引
 df_demo.mean(axis=1).head() # 在这个数据集上体重和身高的均值并没有意义,逐行计算
-df['School'].unique() #查看唯一值
-df['School'].drop_duplicates() #去重
+df['School'].unique() #查看唯一值,返回数组
+df['School'].drop_duplicates() #去重，返回DataFrame
 df['School'].nunique() #查看唯一值个数
 df['School'].value_counts() #查看唯一值及其出现次数
 
