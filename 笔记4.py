@@ -28,7 +28,7 @@ df[['School', 'Gender']].drop_duplicates() # 去重
 df.groupby([df['School'], df['Gender']])['Height'].mean() 
 gb = df.groupby(['School', 'Grade'])
 gb.ngroups # 分组的数量
-res = gb.groups
+res = gb.groups # 返回了一个字典，其中键是学校和性别的组合，值是相应组合下的行索引列表。
 res.keys() # 字典的值由于是索引，元素个数过多，此处只展示字典的键
 #使用group实现drop_duplicates的功能,fist()返回第一个值
 df_grouped = df.groupby(['School', 'Gender']).first().reset_index()
