@@ -142,6 +142,20 @@ mul_index1 = pd.MultiIndex.from_product([L1,L2,L3], names=('Upper', 'Lower','Ext
 L4,L5,L6 = ['C','D'],['c','d'],['cat','dog']
 mul_index2 = pd.MultiIndex.from_product([L4,L5,L6], names=('Big', 'Small', 'Other'))
 df_ex = pd.DataFrame(np.random.randint(-9,10,(8,8)), index=mul_index1,  columns=mul_index2)
+'''
+Big                 C               D            
+Small               c       d       c       d    
+Other             cat dog cat dog cat dog cat dog
+Upper Lower Extra                                
+A     a     alpha  -1  -1   2  -8  -9   6  -7  -5
+            beta    2  -6  -4  -6  -5   8  -3  -3
+      b     alpha  -7  -5   2  -4  -5   8   6   3
+            beta    6  -3   3  -7  -1  -7   2   0
+B     a     alpha  -3   4   8   8  -8   0  -4  -3
+            beta   -9  -6   4   0  -1   7   5   8
+      b     alpha   1  -4   2   6   9  -1  -7   2
+            beta    6   7  -4  -4  -9  -1   9   5
+'''
 df_ex.swaplevel(0,2,axis=1).head() # 列索引的第一层和第三层交换，表头一三行
 df_ex.reorder_levels([2,0,1],axis=0).head() # 列表数字指代原来索引中的层，原来1,2,3列的顺序
 df_ex.droplevel(1,axis=1) # 删除第二层索引
