@@ -65,10 +65,11 @@ df_demo.count() #非缺失值元素个数
 df_demo.idxmax() #最大值的索引
 df_demo.mean(axis=1).head() # 在这个数据集上体重和身高的均值并没有意义,逐行计算
 df['School'].unique() #查看唯一值,返回数组
+
 df['School'].drop_duplicates() #去重，返回DataFrame
 df['School'].nunique() #查看唯一值个数
 df['School'].value_counts() #查看唯一值及其出现次数
-
+df.duplicated() # 检查每一行是否重复
 df_demo = df[['Gender','Transfer']]
 df_demo.drop_duplicates(['Gender', 'Transfer']) #去重
 df_demo.drop_duplicates(['Gender', 'Transfer'], keep='last') #保留最后一个
