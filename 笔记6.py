@@ -20,6 +20,16 @@ df2 = pd.DataFrame({'Name':['San Zhang', 'San Zhang'],
                     'Class':['two', 'one']})
 df1.merge(df2, on=['Name', 'Class'], how='left') # 多列连接，只连接则Name错了
 
+from datetime import timedelta
+nowcoder = pd.read_csv('nowcoder.csv')
+df = pd.merge(nowcoder,nowcoder,on='user_id',suffixes=['_a','_b'])
+df.date_a = pd.to_datetime(df.date_a).dt.date
+df.date_b = pd.to_datetime(df.date_b).dt.date
+df = df[(df.date_a+timedelta(days=1))==df.date_b]
+all_num = nowcoder.user_id.count()
+again_num = df.user_id.count()
+print(round(again_num/all_num,2))
+
 #索引连接
 df1 = pd.DataFrame({'Grade':[70]}, index=pd.Series(['San Zhang'], name='Name'))
 df2 = pd.DataFrame({'Grade':[80]}, index=pd.Series(['San Zhang'], name='Name'))
