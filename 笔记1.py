@@ -1,3 +1,4 @@
+# map(function, iterable)
 list(map(lambda x: print(x), range(1, 4)))
 pairs = [(1, 'a'), (2, 'b'), (3, 'c'), (4, 'd')]
 numbers, letters = zip(*pairs)
